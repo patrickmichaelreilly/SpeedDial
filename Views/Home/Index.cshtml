@@ -1,0 +1,266 @@
+@model SpeedDial.Models.HomeViewModel
+@{
+    ViewData["Title"] = "SpeedDial - DNS & Proxy Manager";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <h1><i class="bi bi-lightning-charge"></i> SpeedDial DNS & Proxy Manager</h1>
+        <p class="text-muted">Unified hostname mapping for internal services</p>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-circle"></i> @Model.ErrorMessage
+    </div>
+}
+
+<!-- Service Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card @(Model.DockerRunning ? "border-success" : "border-danger")">
+            <div class="card-body text-center">
+                <i class="bi bi-box @(Model.DockerRunning ? "text-success" : "text-danger") fs-2"></i>
+                <h6 class="card-title mt-2">Docker</h6>
+                <span class="badge @(Model.DockerRunning ? "bg-success" : "bg-danger")">
+                    @(Model.DockerRunning ? "Running" : "Stopped")
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card @(Model.ContainersRunning ? "border-success" : "border-warning")">
+            <div class="card-body text-center">
+                <i class="bi bi-layers @(Model.ContainersRunning ? "text-success" : "text-warning") fs-2"></i>
+                <h6 class="card-title mt-2">Containers</h6>
+                <span class="badge @(Model.ContainersRunning ? "bg-success" : "bg-warning")">
+                    @(Model.ContainersRunning ? "Running" : "Starting")
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card @(Model.DnsHealthy ? "border-success" : "border-danger")">
+            <div class="card-body text-center">
+                <i class="bi bi-diagram-3 @(Model.DnsHealthy ? "text-success" : "text-danger") fs-2"></i>
+                <h6 class="card-title mt-2">DNS Server</h6>
+                <span class="badge @(Model.DnsHealthy ? "bg-success" : "bg-danger")">
+                    @(Model.DnsHealthy ? "Healthy" : "Unhealthy")
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card @(Model.ProxyHealthy ? "border-success" : "border-danger")">
+            <div class="card-body text-center">
+                <i class="bi bi-arrow-left-right @(Model.ProxyHealthy ? "text-success" : "text-danger") fs-2"></i>
+                <h6 class="card-title mt-2">Proxy Manager</h6>
+                <span class="badge @(Model.ProxyHealthy ? "bg-success" : "bg-danger")">
+                    @(Model.ProxyHealthy ? "Healthy" : "Unhealthy")
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container Controls -->
+@if (!Model.DockerRunning || !Model.ContainersRunning)
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Service Management</h5>
+                    <p class="card-text">Some services are not running. You can start them using the buttons below.</p>
+                    <form method="post" asp-action="StartContainers" class="d-inline">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-play-circle"></i> Start Services
+                        </button>
+                    </form>
+                    <form method="post" asp-action="StopContainers" class="d-inline ms-2">
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="bi bi-stop-circle"></i> Stop Services
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Add New Mapping -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-plus-circle"></i> Add Hostname Mapping</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/Home/AddMapping">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="hostname" class="form-label">Hostname</label>
+                                <input type="text" class="form-control" id="hostname" name="hostname" placeholder="printer.local" required>
+                                <div class="form-text">The hostname you want to access (e.g., printer.local)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="targetIp" class="form-label">Target IP</label>
+                                <input type="text" class="form-control" id="targetIp" name="targetIp" placeholder="192.168.1.50" required>
+                                <div class="form-text">IP address of the target service</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="targetPort" class="form-label">Port</label>
+                                <input type="number" class="form-control" id="targetPort" name="targetPort" placeholder="8080" min="1" max="65535" required>
+                                <div class="form-text">Target port number</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary d-block w-100">
+                                    <i class="bi bi-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Mappings -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-list"></i> Current Hostname Mappings</h5>
+                <span class="badge bg-primary">@Model.Mappings.Count mappings</span>
+            </div>
+            <div class="card-body">
+                @if (Model.Mappings.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Hostname</th>
+                                    <th>Target</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var mapping in Model.Mappings)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@mapping.Hostname</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="bi bi-link-45deg"></i> 
+                                                <a href="http://@mapping.Hostname" target="_blank">http://@mapping.Hostname</a>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <code>@mapping.TargetIP:@mapping.TargetPort</code>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                @mapping.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <form method="post" action="/Home/RemoveMapping" class="d-inline">
+                                                <input type="hidden" name="mappingId" value="@mapping.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                        onclick="return confirm('Are you sure you want to remove @mapping.Hostname?')">
+                                                    <i class="bi bi-trash"></i> Remove
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <h5 class="mt-3">No hostname mappings configured</h5>
+                        <p>Add your first hostname mapping above to get started.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        console.log('SpeedDial Index page loaded');
+        console.log('Current mappings count:', @Model.Mappings.Count);
+        
+        // Debug form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const addForm = document.querySelector('form[method="post"]');
+            console.log('All forms found:', document.querySelectorAll('form').length);
+            
+            if (addForm) {
+                console.log('Add mapping form found:', addForm.action);
+                addForm.addEventListener('submit', function(e) {
+                    const hostname = document.getElementById('hostname').value;
+                    const targetIp = document.getElementById('targetIp').value;
+                    const targetPort = document.getElementById('targetPort').value;
+                    
+                    console.log('Form submitted with values:');
+                    console.log('- Hostname:', hostname);
+                    console.log('- Target IP:', targetIp);
+                    console.log('- Target Port:', targetPort);
+                    
+                    if (!hostname || !targetIp || !targetPort) {
+                        console.error('Missing required fields!');
+                    }
+                });
+            } else {
+                console.error('Add mapping form not found!');
+            }
+            
+            // Debug delete forms  
+            const deleteForms = document.querySelectorAll('form[method="post"]:not(:first-of-type)');
+            console.log('Delete forms found:', deleteForms.length);
+            
+            deleteForms.forEach((form, index) => {
+                form.addEventListener('submit', function(e) {
+                    const mappingId = this.querySelector('input[name="mappingId"]').value;
+                    console.log('Delete form ' + index + ' submitted for mapping ID:', mappingId);
+                });
+            });
+        });
+        
+        // Debug page state
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>console.log('Success message:', '@TempData["SuccessMessage"]');</text>
+        }
+        
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>console.error('Error message:', '@TempData["ErrorMessage"]');</text>
+        }
+        
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <text>console.error('Model error:', '@Html.Raw(Model.ErrorMessage)');</text>
+        }
+    </script>
+}

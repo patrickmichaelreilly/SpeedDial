@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  # Technitium DNS Server
+  dns-server:
+    image: technitium/dns-server:latest
+    container_name: technitium-dns-server
+    restart: unless-stopped
+    ports:
+      # DNS web console (HTTP)
+      - "5380:5380/tcp"
+      # DNS service (UDP and TCP)
+      - "53:53/udp"
+      - "53:53/tcp"
+      # Optional: DNS web console (HTTPS) - uncomment if needed
+      # - "53443:53443/tcp"
+      # Optional: DNS-over-QUIC service - uncomment if needed
+      # - "853:853/udp"
+      # Optional: DNS-over-TLS service - uncomment if needed
+      # - "853:853/tcp"
+      # Optional: DNS-over-HTTPS service (HTTP/3) - uncomment if needed
+      # - "443:443/udp"
+      # Optional: DNS-over-HTTPS service (HTTP/1.1, HTTP/2) - uncomment if needed
+      # - "443:443/tcp"
+      # Optional: DNS-over-HTTP service - uncomment if needed
+      # - "80:80/tcp"
+      # - "8053:8053/tcp"
+      # Optional: DHCP service - uncomment if needed
+      # - "67:67/udp"
+    volumes:
+      - dns_config:/etc/dns
+      # Optional: SSL certificates - uncomment if needed
+      # - ./ssl:/etc/ssl
+    environment:
+      # Primary domain name used by this DNS Server to identify itself
+      - DNS_SERVER_DOMAIN=dns-server.local
+      # Enable blocking of domain names using Blocked Zone and Block List Zone
+      - DNS_SERVER_ENABLE_BLOCKING=true
+      # Allow TXT blocking report responses
+      - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false
+      # Comma separated list of block list URLs (optional)
+      # - DNS_SERVER_BLOCK_LIST_URLS=https://somehost.com/hosts.txt
+      # Comma separated list of forwarder addresses
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+      # Forwarder protocol: Udp, Tcp, Tls, Https, HttpsJson
+      - DNS_SERVER_FORWARDER_PROTOCOL=Udp
+      # Use local time instead of UTC for logging
+      - DNS_SERVER_LOG_USING_LOCAL_TIME=true
+      # Admin password setting (skips manual setup)
+      - DNS_SERVER_ADMIN_PASSWORD=admin123
+    networks:
+      - dns_proxy_network
+    # Optional: Use host networking for DHCP functionality - uncomment if needed
+    # network_mode: host
+
+  # Nginx Proxy Manager
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      # Public HTTP Port
+      - "80:80"
+      # Public HTTPS Port
+      - "443:443"
+      # Admin Web Port
+      - "81:81"
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    environment:
+      # Disable IPv6 if not enabled on your host (optional)
+      - DISABLE_IPV6=true
+      # X-Frame-Options header value (optional)
+      - X_FRAME_OPTIONS=deny
+      # SQLite database configuration (default)
+      - DB_SQLITE_FILE=/data/database.sqlite
+      # Optional: MySQL/MariaDB configuration - uncomment if using external DB
+      # - DB_MYSQL_HOST=npm-db
+      # - DB_MYSQL_PORT=3306
+      # - DB_MYSQL_USER=npm
+      # - DB_MYSQL_PASSWORD=npm
+      # - DB_MYSQL_NAME=npm
+    networks:
+      - dns_proxy_network
+    depends_on:
+      - dns-server
+    # Optional: Initial admin credentials - uncomment and modify if needed
+    # environment:
+    #   - INITIAL_ADMIN_EMAIL=admin@example.com
+    #   - INITIAL_ADMIN_PASSWORD=changeme123
+
+  # Optional: MariaDB for Nginx Proxy Manager - uncomment if you prefer MySQL over SQLite
+  # npm-db:
+  #   image: jc21/mariadb-aria:latest
+  #   container_name: nginx-proxy-manager-db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: npm
+  #     MYSQL_DATABASE: npm
+  #     MYSQL_USER: npm
+  #     MYSQL_PASSWORD: npm
+  #     MARIADB_AUTO_UPGRADE: '1'
+  #   volumes:
+  #     - npm_mysql:/var/lib/mysql
+  #   networks:
+  #     - dns_proxy_network
+
+# Named volumes for persistent data
+volumes:
+  dns_config:
+    driver: local
+  npm_data:
+    driver: local
+  npm_letsencrypt:
+    driver: local
+  # Uncomment if using MariaDB
+  # npm_mysql:
+  #   driver: local
+
+# Custom bridge network for container communication
+networks:
+  dns_proxy_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

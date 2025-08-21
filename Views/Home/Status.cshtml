@@ -1,0 +1,177 @@
+@model SpeedDial.Models.StatusViewModel
+@{
+    ViewData["Title"] = "System Status";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <h1><i class="bi bi-activity"></i> System Status</h1>
+        <p class="text-muted">Monitor the health of all SpeedDial services</p>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-circle"></i> @Model.ErrorMessage
+    </div>
+}
+
+<!-- Service Health Overview -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-heart-pulse"></i> Service Health</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-box @(Model.DockerRunning ? "text-success" : "text-danger") fs-3 me-3"></i>
+                            <div>
+                                <h6 class="mb-0">Docker Engine</h6>
+                                <span class="badge @(Model.DockerRunning ? "bg-success" : "bg-danger")">
+                                    @(Model.DockerRunning ? "Running" : "Stopped")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-layers @(Model.ContainersRunning ? "text-success" : "text-warning") fs-3 me-3"></i>
+                            <div>
+                                <h6 class="mb-0">Docker Containers</h6>
+                                <span class="badge @(Model.ContainersRunning ? "bg-success" : "bg-warning")">
+                                    @(Model.ContainersRunning ? "Running" : "Starting")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-diagram-3 @(Model.DnsHealthy ? "text-success" : "text-danger") fs-3 me-3"></i>
+                            <div>
+                                <h6 class="mb-0">DNS Server</h6>
+                                <span class="badge @(Model.DnsHealthy ? "bg-success" : "bg-danger")">
+                                    @(Model.DnsHealthy ? "Healthy" : "Unhealthy")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-arrow-left-right @(Model.ProxyHealthy ? "text-success" : "text-danger") fs-3 me-3"></i>
+                            <div>
+                                <h6 class="mb-0">Proxy Manager</h6>
+                                <span class="badge @(Model.ProxyHealthy ? "bg-success" : "bg-danger")">
+                                    @(Model.ProxyHealthy ? "Healthy" : "Unhealthy")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container Details -->
+@if (Model.ContainerStatuses.Any())
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-boxes"></i> Container Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Container Name</th>
+                                    <th>Image</th>
+                                    <th>State</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var container in Model.ContainerStatuses)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@container.Name</strong>
+                                        </td>
+                                        <td>
+                                            <code>@container.Image</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge @(container.State == "running" ? "bg-success" : container.State == "exited" ? "bg-danger" : "bg-warning")">
+                                                @container.State
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">@container.Status</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">@container.Created.ToString("yyyy-MM-dd HH:mm")</small>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Service URLs -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-link-45deg"></i> Service Management URLs</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-diagram-3"></i> Technitium DNS Server</h6>
+                        <p class="text-muted mb-2">Manage DNS records and server configuration</p>
+                        <a href="http://localhost:5380" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-box-arrow-up-right"></i> Open DNS Admin (Port 5380)
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-arrow-left-right"></i> Nginx Proxy Manager</h6>
+                        <p class="text-muted mb-2">Manage reverse proxy hosts and SSL certificates</p>
+                        <a href="http://localhost:81" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-box-arrow-up-right"></i> Open Proxy Admin (Port 81)
+                        </a>
+                    </div>
+                </div>
+                <hr class="my-3">
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Default Credentials:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li><strong>DNS Server:</strong> admin / admin123</li>
+                        <li><strong>Proxy Manager:</strong> admin@example.com / changeme</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+    </script>
+}
