@@ -25,6 +25,7 @@ public class HomeController : Controller
             var health = await _orchestrator.GetServiceHealthAsync();
             var dockerRunning = await _dockerService.IsDockerRunningAsync();
             var containersRunning = await _dockerService.AreContainersRunningAsync();
+            var containerStatuses = await _dockerService.GetContainerStatusAsync();
 
             var viewModel = new HomeViewModel
             {
@@ -32,7 +33,8 @@ public class HomeController : Controller
                 DnsHealthy = health.DnsHealthy,
                 ProxyHealthy = health.ProxyHealthy,
                 DockerRunning = dockerRunning,
-                ContainersRunning = containersRunning
+                ContainersRunning = containersRunning,
+                ContainerStatuses = containerStatuses
             };
 
             return View(viewModel);
@@ -157,33 +159,4 @@ public class HomeController : Controller
         return RedirectToAction("Index");
     }
 
-    public async Task<IActionResult> Status()
-    {
-        try
-        {
-            var health = await _orchestrator.GetServiceHealthAsync();
-            var dockerRunning = await _dockerService.IsDockerRunningAsync();
-            var containersRunning = await _dockerService.AreContainersRunningAsync();
-            var containerStatuses = await _dockerService.GetContainerStatusAsync();
-
-            var statusModel = new StatusViewModel
-            {
-                DnsHealthy = health.DnsHealthy,
-                ProxyHealthy = health.ProxyHealthy,
-                DockerRunning = dockerRunning,
-                ContainersRunning = containersRunning,
-                ContainerStatuses = containerStatuses
-            };
-
-            return View(statusModel);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading status page");
-            return View(new StatusViewModel
-            {
-                ErrorMessage = $"Error loading status: {ex.Message}"
-            });
-        }
-    }
 }

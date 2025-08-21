@@ -15,7 +15,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [1/7] Checking prerequisites...
+echo [1/10] Checking prerequisites...
 
 :: Check if Docker is installed
 docker --version >nul 2>&1
@@ -52,7 +52,7 @@ exit /b 1
 
 :continue_install
 
-echo [2/7] Stopping existing SpeedDial service...
+echo [2/10] Stopping existing SpeedDial service...
 
 :: Stop and remove existing service if it exists
 sc query SpeedDial >nul 2>&1
@@ -73,7 +73,7 @@ if not errorlevel 1 (
     )
 )
 
-echo [3/7] Creating installation directory...
+echo [3/10] Creating installation directory...
 
 :: Create C:\SpeedDial directory
 if not exist "C:\SpeedDial" (
@@ -83,7 +83,7 @@ if not exist "C:\SpeedDial" (
     echo C:\SpeedDial directory already exists
 )
 
-echo [4/7] Building application...
+echo [4/10] Building application...
 
 :: Build the application for Windows
 dotnet publish -c Release -r win-x64 --self-contained -o "%~dp0publish"
@@ -95,7 +95,7 @@ if errorlevel 1 (
 
 echo Application built successfully
 
-echo [5/7] Copying application files...
+echo [5/10] Copying application files...
 
 :: Copy published files to C:\SpeedDial
 xcopy /E /I /Y "%~dp0publish\*" "C:\SpeedDial\" >nul
@@ -110,7 +110,7 @@ if errorlevel 1 (
 
 echo Application files copied to C:\SpeedDial
 
-echo [6/8] Creating configuration files...
+echo [6/10] Creating configuration files...
 
 :: Create mappings.json file
 echo Creating mappings.json configuration file...
@@ -121,7 +121,7 @@ echo } >> "C:\SpeedDial\mappings.json"
 
 echo Configuration files created
 
-echo [7/8] Configuring firewall rules...
+echo [7/10] Configuring firewall rules...
 
 :: Add firewall rules for required ports
 netsh advfirewall firewall delete rule name="SpeedDial-Web" >nul 2>&1
@@ -142,7 +142,7 @@ netsh advfirewall firewall add rule name="SpeedDial-DNS-Admin" dir=in action=all
 
 echo Firewall rules configured
 
-echo [8/8] Installing and starting Windows service...
+echo [8/10] Installing and starting Windows service...
 
 :: Install Windows service
 sc create SpeedDial binpath="C:\SpeedDial\SpeedDial.exe" start=auto displayname="SpeedDial DNS and Proxy Manager" obj="LocalSystem" >nul
@@ -165,7 +165,7 @@ if errorlevel 1 (
     echo SpeedDial service started successfully
 )
 
-echo [8/8] Starting Docker containers...
+echo [9/10] Starting Docker containers...
 
 :: Start the Docker containers  
 cd /d "C:\SpeedDial"
@@ -181,8 +181,42 @@ if errorlevel 1 (
     echo Docker containers started successfully
 )
 
-echo [9/9] Finalizing installation...
+echo [9/9] Cleaning up deployment files...
 
+:: Clean up unnecessary build artifacts from C:\SpeedDial
+echo Removing development and build artifacts...
+
+:: Remove debug symbols and development files
+del /Q "C:\SpeedDial\*.pdb" >nul 2>&1
+del /Q "C:\SpeedDial\*.xml" >nul 2>&1
+
+:: Remove reference assemblies (keep runtime assemblies)
+if exist "C:\SpeedDial\ref\" (
+    echo Removing reference assemblies...
+    rmdir /S /Q "C:\SpeedDial\ref\" >nul 2>&1
+)
+
+:: Remove development configuration files
+del /Q "C:\SpeedDial\appsettings.Development.json" >nul 2>&1
+
+:: Remove source link files
+del /Q "C:\SpeedDial\*.sourcelink.json" >nul 2>&1
+
+:: Remove build metadata files
+del /Q "C:\SpeedDial\*.deps.json.backup" >nul 2>&1
+del /Q "C:\SpeedDial\*.runtimeconfig.dev.json" >nul 2>&1
+
+:: Clean up any leftover temporary files
+for /f %%i in ('dir /b "C:\SpeedDial\*.tmp" 2^>nul') do del /Q "C:\SpeedDial\%%i" >nul 2>&1
+
+:: Remove any empty directories
+for /f "delims=" %%d in ('dir "C:\SpeedDial" /ad /b 2^>nul') do (
+    rmdir "C:\SpeedDial\%%d" >nul 2>&1
+)
+
+echo Cleanup completed - removed unnecessary development files
+
+echo [10/10] Finalizing installation...
 
 echo.
 echo ========================================

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SpeedDial")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+002e925e30a294300376934afc9668b4c989d2e6")]
 [assembly: System.Reflection.AssemblyProductAttribute("SpeedDial")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SpeedDial")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

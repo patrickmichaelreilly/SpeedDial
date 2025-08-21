@@ -1,5 +1,8 @@
 @echo off
 
+:: Save the current directory to return to it later
+set "ORIGINAL_DIR=%CD%"
+
 echo ========================================
 echo SpeedDial Kill Script
 echo ========================================
@@ -48,4 +51,8 @@ echo To completely remove, manually delete:
 echo - C:\SpeedDial directory
 echo - Docker volumes: docker volume prune
 echo.
+
+:: Return to original directory
+cd /d "%ORIGINAL_DIR%" >nul 2>&1
+
 pause

@@ -67,3 +67,4 @@
 /home/patrick/SpeedDial/obj/Debug/net8.0/SpeedDial.pdb
 /home/patrick/SpeedDial/obj/Debug/net8.0/SpeedDial.genruntimeconfig.cache
 /home/patrick/SpeedDial/obj/Debug/net8.0/ref/SpeedDial.dll
+/home/patrick/SpeedDial/obj/Debug/net8.0/SpeedDial.sourcelink.json

@@ -4,9 +4,8 @@
 }
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-12 text-center">
         <h1><i class="bi bi-lightning-charge"></i> SpeedDial DNS & Proxy Manager</h1>
-        <p class="text-muted">Unified hostname mapping for internal services</p>
     </div>
 </div>
 
@@ -19,51 +18,85 @@
 
 <!-- Service Status Cards -->
 <div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card @(Model.DockerRunning ? "border-success" : "border-danger")">
-            <div class="card-body text-center">
-                <i class="bi bi-box @(Model.DockerRunning ? "text-success" : "text-danger") fs-2"></i>
-                <h6 class="card-title mt-2">Docker</h6>
-                <span class="badge @(Model.DockerRunning ? "bg-success" : "bg-danger")">
-                    @(Model.DockerRunning ? "Running" : "Stopped")
-                </span>
+    <div class="col-md-4">
+        <div class="card @(Model.DockerRunning ? "border-success" : "border-danger") h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-box @(Model.DockerRunning ? "text-success" : "text-danger") fs-2 me-3"></i>
+                    <div>
+                        <h6 class="mb-0">Docker</h6>
+                        <span class="badge @(Model.DockerRunning ? "bg-success" : "bg-danger")">
+                            @(Model.DockerRunning ? "Running" : "Stopped")
+                        </span>
+                    </div>
+                </div>
+                @if (Model.ContainerStatuses.Any())
+                {
+                    @foreach (var container in Model.ContainerStatuses)
+                    {
+                        <div class="alert alert-info py-2 @(Model.ContainerStatuses.Last() != container ? "mb-2" : "mb-0")">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small><code>@container.Image</code></small>
+                                <span class="badge @(container.State == "running" ? "bg-success" : container.State == "exited" ? "bg-danger" : "bg-warning")">
+                                    @(container.State == "running" ? "Running" : container.State == "exited" ? "Exited" : container.State)
+                                </span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info py-2 mb-0">
+                        <small>No containers found</small>
+                    </div>
+                }
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card @(Model.ContainersRunning ? "border-success" : "border-warning")">
-            <div class="card-body text-center">
-                <i class="bi bi-layers @(Model.ContainersRunning ? "text-success" : "text-warning") fs-2"></i>
-                <h6 class="card-title mt-2">Containers</h6>
-                <span class="badge @(Model.ContainersRunning ? "bg-success" : "bg-warning")">
-                    @(Model.ContainersRunning ? "Running" : "Starting")
-                </span>
+    <div class="col-md-4">
+        <div class="card @(Model.DnsHealthy ? "border-success" : "border-danger") h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-diagram-3 @(Model.DnsHealthy ? "text-success" : "text-danger") fs-2 me-3"></i>
+                    <div>
+                        <h6 class="mb-0">Technitium DNS Server</h6>
+                        <span class="badge @(Model.DnsHealthy ? "bg-success" : "bg-danger")">
+                            @(Model.DnsHealthy ? "Healthy" : "Unhealthy")
+                        </span>
+                    </div>
+                </div>
+                <a href="http://localhost:5380" target="_blank" class="btn btn-outline-primary btn-sm mb-2 w-100">
+                    <i class="bi bi-box-arrow-up-right"></i> Open DNS Admin (Port 5380)
+                </a>
+                <div class="alert alert-info py-2 mb-0">
+                    <small><strong>Credentials:</strong> admin / admin123</small>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card @(Model.DnsHealthy ? "border-success" : "border-danger")">
-            <div class="card-body text-center">
-                <i class="bi bi-diagram-3 @(Model.DnsHealthy ? "text-success" : "text-danger") fs-2"></i>
-                <h6 class="card-title mt-2">DNS Server</h6>
-                <span class="badge @(Model.DnsHealthy ? "bg-success" : "bg-danger")">
-                    @(Model.DnsHealthy ? "Healthy" : "Unhealthy")
-                </span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card @(Model.ProxyHealthy ? "border-success" : "border-danger")">
-            <div class="card-body text-center">
-                <i class="bi bi-arrow-left-right @(Model.ProxyHealthy ? "text-success" : "text-danger") fs-2"></i>
-                <h6 class="card-title mt-2">Proxy Manager</h6>
-                <span class="badge @(Model.ProxyHealthy ? "bg-success" : "bg-danger")">
-                    @(Model.ProxyHealthy ? "Healthy" : "Unhealthy")
-                </span>
+    <div class="col-md-4">
+        <div class="card @(Model.ProxyHealthy ? "border-success" : "border-danger") h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-arrow-left-right @(Model.ProxyHealthy ? "text-success" : "text-danger") fs-2 me-3"></i>
+                    <div>
+                        <h6 class="mb-0">Nginx Proxy Manager</h6>
+                        <span class="badge @(Model.ProxyHealthy ? "bg-success" : "bg-danger")">
+                            @(Model.ProxyHealthy ? "Healthy" : "Unhealthy")
+                        </span>
+                    </div>
+                </div>
+                <a href="http://localhost:81" target="_blank" class="btn btn-outline-primary btn-sm mb-2 w-100">
+                    <i class="bi bi-box-arrow-up-right"></i> Open Proxy Admin (Port 81)
+                </a>
+                <div class="alert alert-info py-2 mb-0">
+                    <small><strong>Credentials:</strong> admin@example.com / changeme</small>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Container Controls -->
 @if (!Model.DockerRunning || !Model.ContainersRunning)
@@ -262,5 +295,10 @@
         {
             <text>console.error('Model error:', '@Html.Raw(Model.ErrorMessage)');</text>
         }
+        
+        // Auto-refresh every 30 seconds
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
     </script>
 }
