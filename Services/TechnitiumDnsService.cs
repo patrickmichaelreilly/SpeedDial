@@ -83,8 +83,14 @@ public class TechnitiumDnsService
                 return false;
             }
 
-            // First, ensure the zone exists
-            var zone = GetZoneFromHostname(hostname);
+            // First, determine and ensure the optimal zone exists
+            var zone = await DetermineOptimalZoneAsync(hostname);
+            if (string.IsNullOrEmpty(zone))
+            {
+                _logger.LogError("Failed to determine appropriate zone for hostname: {Hostname}", hostname);
+                return false;
+            }
+
             var zoneCreated = await EnsureZoneExistsAsync(zone);
             if (!zoneCreated)
             {
@@ -198,16 +204,84 @@ public class TechnitiumDnsService
         }
     }
 
-    private string GetZoneFromHostname(string hostname)
+    private async Task<string> DetermineOptimalZoneAsync(string hostname)
     {
-        // For local hostnames, create zone based on the TLD
-        // e.g., "shopboss.local" -> "local"
-        var parts = hostname.Split('.');
+        try
+        {
+            // Get list of existing zones
+            var existingZones = await GetExistingZonesAsync();
+            
+            // Split hostname into parts
+            var parts = hostname.Split('.');
+            if (parts.Length < 2)
+            {
+                return hostname; // Single label hostname
+            }
+            
+            // Check from most specific to least specific
+            // e.g. for "beta.shopboss.local", check:
+            // 1. beta.shopboss.local
+            // 2. shopboss.local  
+            // 3. local
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var candidateZone = string.Join(".", parts.Skip(i));
+                
+                // If this zone already exists, use it
+                if (existingZones.Any(z => z.Equals(candidateZone, StringComparison.OrdinalIgnoreCase)))
+                {
+                    _logger.LogInformation("Found existing zone for {Hostname}: {Zone}", hostname, candidateZone);
+                    return candidateZone;
+                }
+            }
+            
+            // No existing zone found, determine the best zone to create
+            return DetermineNewZoneToCreate(hostname, parts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error determining optimal zone for {Hostname}", hostname);
+            // Fallback to TLD-based zone
+            var parts = hostname.Split('.');
+            return parts.Length >= 2 ? parts[^1] : hostname;
+        }
+    }
+    
+    private string DetermineNewZoneToCreate(string hostname, string[] parts)
+    {
+        // Always create zone at TLD level for simplicity and consistency
+        // This works perfectly for internal/LAN domains like .local, .internal, .private, etc.
         if (parts.Length >= 2)
         {
-            return string.Join(".", parts.Skip(parts.Length - 2));
+            var tldZone = parts[^1];
+            _logger.LogInformation("Creating TLD zone for {Hostname}: {Zone}", hostname, tldZone);
+            return tldZone;
         }
+        
         return hostname;
+    }
+    
+    private async Task<List<string>> GetExistingZonesAsync()
+    {
+        try
+        {
+            var listUrl = $"{BaseUrl}/api/zones/list?token={_token}";
+            var listResponse = await _httpClient.GetAsync(listUrl);
+            var listJson = await listResponse.Content.ReadAsStringAsync();
+            
+            var listResult = JsonSerializer.Deserialize<ZoneListResponse>(listJson);
+            if (listResult?.Status == "ok" && listResult.Response?.Zones != null)
+            {
+                return listResult.Response.Zones.Select(z => z.Name).ToList();
+            }
+            
+            return new List<string>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching existing zones");
+            return new List<string>();
+        }
     }
 
     private async Task<bool> EnsureZoneExistsAsync(string zone)

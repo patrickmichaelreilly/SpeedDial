@@ -21,9 +21,10 @@ echo [1/4] Stopping SpeedDial service...
 sc stop SpeedDial >nul 2>&1
 timeout /t 3 /nobreak >nul
 
-echo [2/4] Stopping Docker containers...
+echo [2/4] Stopping Docker containers and cleaning volumes...
 cd /d "C:\SpeedDial"
 docker compose down >nul 2>&1
+docker volume rm speeddial_dns_config speeddial_npm_data speeddial_npm_letsencrypt >nul 2>&1
 
 echo [3/4] Removing SpeedDial service...
 sc delete SpeedDial >nul 2>&1
@@ -43,13 +44,11 @@ echo Kill Complete!
 echo ========================================
 echo.
 echo SpeedDial service stopped and removed
-echo Docker containers stopped
+echo Docker containers stopped and volumes cleaned
 echo Firewall rules removed
 echo.
-echo NOTE: C:\SpeedDial directory and Docker volumes remain
-echo To completely remove, manually delete:
-echo - C:\SpeedDial directory
-echo - Docker volumes: docker volume prune
+echo NOTE: C:\SpeedDial directory remains for logs/config
+echo To completely remove, manually delete C:\SpeedDial directory
 echo.
 
 :: Return to original directory
