@@ -8,13 +8,15 @@ public class TechnitiumDnsService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<TechnitiumDnsService> _logger;
+    private readonly INetworkService _networkService;
     private string _token = string.Empty;
 
-    public TechnitiumDnsService(HttpClient httpClient, IConfiguration configuration, ILogger<TechnitiumDnsService> logger)
+    public TechnitiumDnsService(HttpClient httpClient, IConfiguration configuration, ILogger<TechnitiumDnsService> logger, INetworkService networkService)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _logger = logger;
+        _networkService = networkService;
     }
 
     private string BaseUrl => _configuration["SpeedDial:TechnitiumDns:BaseUrl"] ?? "http://localhost:5380";
@@ -98,7 +100,7 @@ public class TechnitiumDnsService
                 return false;
             }
 
-            var proxyServerIP = _configuration["SpeedDial:ProxyServerIP"] ?? "127.0.0.1";
+            var proxyServerIP = _networkService.GetServerIPAddress();
             var url = $"{BaseUrl}/api/zones/records/add?token={_token}&domain={hostname}&type=A&ipAddress={proxyServerIP}&ttl=3600&overwrite=true";
             
             var response = await _httpClient.GetAsync(url);
@@ -133,7 +135,7 @@ public class TechnitiumDnsService
                 return false;
             }
 
-            var proxyServerIP = _configuration["SpeedDial:ProxyServerIP"] ?? "127.0.0.1";
+            var proxyServerIP = _networkService.GetServerIPAddress();
             var url = $"{BaseUrl}/api/zones/records/delete?token={_token}&domain={hostname}&type=A&ipAddress={proxyServerIP}";
             
             var response = await _httpClient.GetAsync(url);

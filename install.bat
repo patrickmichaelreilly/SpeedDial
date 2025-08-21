@@ -136,7 +136,7 @@ netsh advfirewall firewall add rule name="SpeedDial-Web" dir=in action=allow pro
 netsh advfirewall firewall add rule name="SpeedDial-DNS-UDP" dir=in action=allow protocol=UDP localport=53 >nul
 netsh advfirewall firewall add rule name="SpeedDial-DNS-TCP" dir=in action=allow protocol=TCP localport=53 >nul
 netsh advfirewall firewall add rule name="SpeedDial-HTTP" dir=in action=allow protocol=TCP localport=80 >nul
-netsh advfirewall firewall add rule name="SpeedDial-HTTPS" dir=in action=allow protocol=TCP localport=443 >nul
+netsh advfirewall firewall add rule name="SpeedDial-HTTPS" dir=in action=allow protocol=TCP localport=420 >nul
 netsh advfirewall firewall add rule name="SpeedDial-NPM-Admin" dir=in action=allow protocol=TCP localport=81 >nul
 netsh advfirewall firewall add rule name="SpeedDial-DNS-Admin" dir=in action=allow protocol=TCP localport=5380 >nul
 

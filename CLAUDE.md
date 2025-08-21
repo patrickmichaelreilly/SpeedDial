@@ -137,7 +137,7 @@ Use `kill.bat` for complete service removal and cleanup.
 
 ### Common Issues
 - Docker not running: Service health checks will fail
-- Port conflicts: Check ports 53, 80, 81, 443, 5380, 5555
+- Port conflicts: Check ports 53, 80, 81, 420, 5380, 5555
 - DNS/Proxy API authentication: Verify tokens in appsettings.json
 - Configuration file corruption: mappings.json uses soft-delete recovery
 

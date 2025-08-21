@@ -24,7 +24,7 @@ This docker-compose.yml file deploys and manages both Technitium DNS Server and 
 
 ### Nginx Proxy Manager
 - **80/tcp**: Public HTTP port
-- **443/tcp**: Public HTTPS port
+- **420/tcp**: Public HTTPS port
 - **81/tcp**: Admin web interface
 
 ## Volume Configuration
@@ -142,7 +142,7 @@ docker run --rm -v npm_data:/data -v $(pwd):/backup alpine tar czf /backup/npm-b
 
 ### Proxy Manager Issues
 - Check container logs: `docker compose logs nginx-proxy-manager`
-- Verify port 80/443 are not used by other services
+- Verify port 80/420 are not used by other services
 - Check SSL certificate generation in logs
 
 ### Network Issues

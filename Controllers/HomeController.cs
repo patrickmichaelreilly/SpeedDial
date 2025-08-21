@@ -8,12 +8,14 @@ public class HomeController : Controller
 {
     private readonly ServiceOrchestrator _orchestrator;
     private readonly DockerService _dockerService;
+    private readonly INetworkService _networkService;
     private readonly ILogger<HomeController> _logger;
 
-    public HomeController(ServiceOrchestrator orchestrator, DockerService dockerService, ILogger<HomeController> logger)
+    public HomeController(ServiceOrchestrator orchestrator, DockerService dockerService, INetworkService networkService, ILogger<HomeController> logger)
     {
         _orchestrator = orchestrator;
         _dockerService = dockerService;
+        _networkService = networkService;
         _logger = logger;
     }
 
@@ -34,7 +36,8 @@ public class HomeController : Controller
                 ProxyHealthy = health.ProxyHealthy,
                 DockerRunning = dockerRunning,
                 ContainersRunning = containersRunning,
-                ContainerStatuses = containerStatuses
+                ContainerStatuses = containerStatuses,
+                ServerIP = _networkService.GetServerIPAddress()
             };
 
             return View(viewModel);
@@ -44,7 +47,8 @@ public class HomeController : Controller
             _logger.LogError(ex, "Error loading home page");
             return View(new HomeViewModel
             {
-                ErrorMessage = $"Error loading data: {ex.Message}"
+                ErrorMessage = $"Error loading data: {ex.Message}",
+                ServerIP = _networkService.GetServerIPAddress()
             });
         }
     }

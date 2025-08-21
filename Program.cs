@@ -15,6 +15,7 @@ builder.Services.AddHttpClient();
 // Register our services
 builder.Services.AddSingleton<ConfigurationService>();
 builder.Services.AddSingleton<DockerService>();
+builder.Services.AddSingleton<INetworkService, NetworkService>();
 builder.Services.AddScoped<TechnitiumDnsService>();
 builder.Services.AddScoped<NginxProxyManagerService>();
 builder.Services.AddScoped<ServiceOrchestrator>();

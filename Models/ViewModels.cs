@@ -10,6 +10,7 @@ public class HomeViewModel
     public bool DockerRunning { get; set; }
     public bool ContainersRunning { get; set; }
     public List<ContainerStatus> ContainerStatuses { get; set; } = new();
+    public string ServerIP { get; set; } = "127.0.0.1";
     public string? ErrorMessage { get; set; }
     public string? SuccessMessage { get; set; }
 }
